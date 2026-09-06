@@ -32,8 +32,9 @@ Set at minimum:
 
 - `SITE_DOMAIN` — domain without `https://`
 - `NEXT_PUBLIC_SITE_URL` — canonical full URL
-- `ADMIN_PASSWORD` — long unique random password
 - `ADMIN_SESSION_SECRET` — at least 64 random characters
+- `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` — the server-side Google OAuth credentials
+- `ADMIN_GOOGLE_EMAILS` — comma-separated Google accounts allowed into `/admin`
 - `ACME_EMAIL` — TLS certificate notices
 
 Before starting, point the apex domain DNS A/AAAA records to the VPS and open TCP 80/443 and UDP 443. The old experimental `work.`, `services.` and `about.` rewrite logic is intentionally removed; the supported production hosts are the apex domain and `www` redirect only.
@@ -119,7 +120,7 @@ Check the off-site destination after the first run. A backup stored only on the 
 
 ## Admin protection
 
-The built-in login endpoint allows only 5 failed attempts per 15 minutes per client IP and adds a delay on failed authentication. For a single-owner studio this is adequate as the application layer; Cloudflare Access or Tailscale can optionally be placed in front of `/admin` for another perimeter layer.
+Admin access uses Google OAuth and an explicit `ADMIN_GOOGLE_EMAILS` allowlist. An optional password fallback still limits failed attempts to 5 per 15 minutes per client IP and adds a delay on failed authentication. Cloudflare Access or Tailscale can optionally be placed in front of `/admin` for another perimeter layer.
 
 Rotating `ADMIN_SESSION_SECRET` immediately invalidates all current admin sessions.
 

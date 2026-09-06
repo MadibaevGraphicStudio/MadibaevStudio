@@ -2,10 +2,17 @@ import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 
 import { cookies } from "next/headers";
 
+import {
+  getMgsAdminSetupStatus,
+  readMgsAuthEnv,
+  shouldUseMgsSecureCookie,
+  type MgsAdminSetupStatus,
+} from "@/lib/mgs-auth-config";
+
+export type { MgsAdminSetupStatus } from "@/lib/mgs-auth-config";
+
 export const MGS_ADMIN_COOKIE_NAME = "mgs_admin_session";
 export const MGS_ADMIN_SESSION_MAX_AGE = 60 * 60 * 12;
-
-type MgsAdminAuthEnvKey = "ADMIN_PASSWORD" | "ADMIN_SESSION_SECRET";
 
 type MgsAdminSessionPayload = {
   exp: number;
@@ -16,12 +23,6 @@ type MgsAdminSessionPayload = {
 export type MgsAdminSession = {
   expiresAt: string;
   issuedAt: string;
-};
-
-export type MgsAdminSetupStatus = {
-  authConfigured: boolean;
-  storageConnected: boolean;
-  missingAuthEnv: readonly MgsAdminAuthEnvKey[];
 };
 
 export type MgsAdminAccessState =
@@ -35,15 +36,6 @@ export type MgsAdminAccessState =
       session: MgsAdminSession;
       setup: MgsAdminSetupStatus;
     };
-
-function readEnv(name: MgsAdminAuthEnvKey) {
-  const value = process.env[name];
-  return typeof value === "string" && value.trim() ? value.trim() : null;
-}
-
-function hasPersistentStorage() {
-  return Boolean(process.env.MGS_DATA_DIR?.trim() || process.env.BLOB_READ_WRITE_TOKEN?.trim());
-}
 
 function encodeBase64Url(value: string) {
   return Buffer.from(value, "utf8").toString("base64url");
@@ -118,28 +110,7 @@ function createSessionToken(secret: string) {
   };
 }
 
-function shouldUseSecureCookie() {
-  const explicit = process.env.MGS_COOKIE_SECURE?.trim().toLowerCase();
-
-  if (explicit === "true" || explicit === "1") return true;
-  if (explicit === "false" || explicit === "0") return false;
-
-  return (
-    process.env.VERCEL === "1" ||
-    process.env.VERCEL_ENV === "production" ||
-    process.env.NEXT_PUBLIC_SITE_URL?.startsWith("https://") === true
-  );
-}
-
-export function getMgsAdminSetupStatus(): MgsAdminSetupStatus {
-  const missingAuthEnv = (["ADMIN_PASSWORD", "ADMIN_SESSION_SECRET"] as const).filter((key) => !readEnv(key));
-
-  return {
-    authConfigured: missingAuthEnv.length === 0,
-    storageConnected: hasPersistentStorage(),
-    missingAuthEnv,
-  };
-}
+export { getMgsAdminSetupStatus } from "@/lib/mgs-auth-config";
 
 export async function getMgsAdminAccessState(): Promise<MgsAdminAccessState> {
   const setup = getMgsAdminSetupStatus();
@@ -152,7 +123,7 @@ export async function getMgsAdminAccessState(): Promise<MgsAdminAccessState> {
     };
   }
 
-  const secret = readEnv("ADMIN_SESSION_SECRET");
+  const secret = readMgsAuthEnv("ADMIN_SESSION_SECRET");
   const cookieStore = await cookies();
   const token = cookieStore.get(MGS_ADMIN_COOKIE_NAME)?.value;
 
@@ -185,7 +156,7 @@ export async function getMgsAdminAccessState(): Promise<MgsAdminAccessState> {
 }
 
 export function authenticateMgsAdminPassword(password: string) {
-  const expectedPassword = readEnv("ADMIN_PASSWORD");
+  const expectedPassword = readMgsAuthEnv("ADMIN_PASSWORD");
 
   if (!expectedPassword) {
     return false;
@@ -195,7 +166,7 @@ export function authenticateMgsAdminPassword(password: string) {
 }
 
 export function createMgsAdminSessionCookie() {
-  const secret = readEnv("ADMIN_SESSION_SECRET");
+  const secret = readMgsAuthEnv("ADMIN_SESSION_SECRET");
 
   if (!secret) {
     throw new Error("Missing ADMIN_SESSION_SECRET.");
@@ -215,7 +186,7 @@ export function getMgsAdminCookieOptions(expiresAt: number) {
     value: "",
     httpOnly: true,
     sameSite: "lax" as const,
-    secure: shouldUseSecureCookie(),
+    secure: shouldUseMgsSecureCookie(),
     path: "/",
     expires: new Date(expiresAt),
     maxAge: MGS_ADMIN_SESSION_MAX_AGE,
