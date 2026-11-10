@@ -48,7 +48,7 @@ export function MgsAdminMediaLibrary({ onSelect, compact = false }: MediaLibrary
     }
   }, []);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { void Promise.resolve().then(load); }, [load]);
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();

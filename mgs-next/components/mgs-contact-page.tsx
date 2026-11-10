@@ -8,7 +8,7 @@ import {
 } from "@heroicons/react/24/solid";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
-import { type FormEvent, useRef, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import type { MgsLocale } from "@/lib/mgs-project-data";
@@ -84,7 +84,8 @@ function buildFallbackMailto(payload: EnquiryPayload, locale: MgsLocale) {
 export function MgsContactPage({ locale }: { locale: MgsLocale }) {
   const copy = contactCopy[locale];
   const router = useRouter();
-  const formStartedAt = useRef(Date.now());
+  const formStartedAt = useRef<number | null>(null);
+  useEffect(() => { formStartedAt.current = Date.now(); }, []);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -113,7 +114,7 @@ export function MgsContactPage({ locale }: { locale: MgsLocale }) {
         body: JSON.stringify({
           ...payload,
           website: String(formData.get("website") || ""),
-          formStartedAt: formStartedAt.current,
+          formStartedAt: formStartedAt.current ?? Date.now(),
           turnstileToken: String(formData.get("cf-turnstile-response") || ""),
         }),
       });
