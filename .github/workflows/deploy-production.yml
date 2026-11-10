@@ -1,0 +1,59 @@
+name: Deploy Studio production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: studio-production
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: corepack enable
+      - run: corepack pnpm install --frozen-lockfile
+        working-directory: mgs-next
+      - run: corepack pnpm lint
+        working-directory: mgs-next
+      - run: corepack pnpm exec tsc --noEmit
+        working-directory: mgs-next
+      - run: corepack pnpm build
+        working-directory: mgs-next
+        env:
+          NEXT_PUBLIC_SITE_URL: https://studio.madibaev.online
+      - run: docker build -f vps/Dockerfile --build-arg NEXT_PUBLIC_SITE_URL=https://studio.madibaev.online -t studio-check:${{ github.sha }} .
+
+  deploy:
+    needs: verify
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Install pinned SSH host key
+        env:
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/studio_deploy
+          chmod 600 ~/.ssh/known_hosts ~/.ssh/studio_deploy
+      - name: Deploy exact commit
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          SHA: ${{ github.sha }}
+        run: |
+          [[ "$SHA" =~ ^[0-9a-f]{40}$ ]]
+          ssh -i ~/.ssh/studio_deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "sudo /usr/local/sbin/studio-action-deploy.sh $SHA"
