@@ -25,12 +25,12 @@ jobs:
         working-directory: mgs-next
       - run: corepack pnpm lint
         working-directory: mgs-next
-      - run: corepack pnpm exec tsc --noEmit
-        working-directory: mgs-next
       - run: corepack pnpm build
         working-directory: mgs-next
         env:
           NEXT_PUBLIC_SITE_URL: https://studio.madibaev.online
+      - run: corepack pnpm exec tsc --noEmit
+        working-directory: mgs-next
       - run: docker build -f vps/Dockerfile --build-arg NEXT_PUBLIC_SITE_URL=https://studio.madibaev.online -t studio-check:${{ github.sha }} .
 
   deploy:
