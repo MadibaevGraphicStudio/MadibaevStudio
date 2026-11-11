@@ -2,6 +2,8 @@
 
 # dependencies
 /node_modules
+/.npm-cache/
+/.pnpm-store/
 /.pnp
 .pnp.*
 .yarn/*

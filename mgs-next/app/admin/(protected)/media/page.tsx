@@ -11,7 +11,7 @@ export default async function AdminMediaPage() {
 
   return (
     <MgsAdminShell
-      description="Upload files to the VPS once, reuse their /media URLs in projects, and manage existing assets from one place."
+      description="Upload, find and reuse images and documents across your projects."
       section="media"
       setupStatus={setupStatus}
       storageStatus={projectsData.status}

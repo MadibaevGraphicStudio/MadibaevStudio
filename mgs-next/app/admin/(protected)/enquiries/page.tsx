@@ -11,7 +11,7 @@ export default async function AdminEnquiriesPage() {
 
   return (
     <MgsAdminShell
-      description="Lead tracking for the public contact form. Status updates write back through the same deployed Next application."
+      description="Follow new briefs from first contact to accepted projects."
       section="enquiries"
       setupStatus={setupStatus}
       storageStatus={enquiriesData.status}
@@ -26,7 +26,7 @@ export default async function AdminEnquiriesPage() {
       </div>
 
       <MgsAdminPanel
-        description="Each enquiry is stored as a separate private record to prevent contact-form writes from clobbering each other."
+        description="Search conversations, review briefs and keep each client’s progress up to date."
         eyebrow="Pipeline"
         title="Lead management"
       >

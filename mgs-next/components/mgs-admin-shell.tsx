@@ -1,12 +1,12 @@
-import { ArrowTopRightOnSquareIcon, CircleStackIcon, FolderOpenIcon, InboxStackIcon, PhotoIcon } from "@heroicons/react/24/solid";
+import { ArrowUpRight, Check, CircleAlert, ShieldCheck } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
-
 import type { MgsAdminSetupStatus } from "@/lib/mgs-admin-auth";
 import type { MgsContentStoreStatus } from "@/lib/mgs-content-store";
-
+import "@/app/admin/admin-ui.css";
 import { MgsAdminLogoutButton } from "./mgs-admin-logout-button";
+import { MgsAdminMotion, MgsAdminNavigation } from "./mgs-admin-navigation";
 
 type MgsAdminShellProps = {
   section: "dashboard" | "projects" | "media" | "enquiries";
@@ -18,119 +18,52 @@ type MgsAdminShellProps = {
   actions?: ReactNode;
 };
 
-const navigation = [
-  { key: "dashboard", href: "/admin", label: "Dashboard", icon: CircleStackIcon },
-  { key: "projects", href: "/admin/projects", label: "Projects", icon: FolderOpenIcon },
-  { key: "media", href: "/admin/media", label: "Media", icon: PhotoIcon },
-  { key: "enquiries", href: "/admin/enquiries", label: "Enquiries", icon: InboxStackIcon },
-] as const;
-
-function StatusPill({ tone, children }: { tone: "good" | "warn" | "neutral"; children: ReactNode }) {
-  const toneClass = tone === "good"
-    ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-200"
-    : tone === "warn"
-      ? "border-amber-300/25 bg-amber-300/10 text-amber-200"
-      : "border-white/10 bg-white/[0.04] text-[#b7aa9d]";
-
-  return <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[0.68rem] font-medium tracking-[0.16em] uppercase ${toneClass}`}>{children}</span>;
-}
-
 export function MgsAdminShell({ section, title, description, setupStatus, storageStatus, children, actions }: MgsAdminShellProps) {
-  return (
-    <main className="min-h-screen bg-[#050505] text-[#f6ecdd]">
-      <div className="mx-auto grid min-h-screen w-full max-w-[1920px] lg:grid-cols-[256px_minmax(0,1fr)]">
-        <aside className="border-r border-white/10 bg-[#0a0a0a] px-3 py-5 lg:sticky lg:top-0 lg:h-screen">
-          <div className="flex h-full flex-col gap-6">
-            <div className="border-b border-white/10 px-2 pb-5">
-              <div className="flex items-center gap-3 rounded-xl bg-[#17181c] px-3 py-2.5">
-                <Image alt="Madibaev Graphic Studio" height={28} priority src="/mgs-logo.svg" width={82} />
+  return <MgsAdminMotion>
+    <main className="admin-ui min-h-screen bg-[#0b0b0d] text-[#f6ecdd]">
+      <a href="#admin-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[110] focus:rounded-lg focus:bg-white focus:p-3 focus:text-black">Skip to content</a>
+      <div className="mx-auto grid min-h-screen max-w-[1920px] lg:grid-cols-[240px_minmax(0,1fr)]">
+        <aside className="border-b border-white/[0.07] bg-[#101012] px-4 py-4 lg:sticky lg:top-0 lg:h-screen lg:border-r lg:border-b-0 lg:py-7">
+          <div className="flex h-full items-center justify-between gap-5 lg:flex-col lg:items-stretch lg:justify-start">
+            <Link href="/admin" className="flex items-center gap-3 px-2 lg:mb-8" aria-label="Madibaev Studio admin home">
+              <Image alt="Madibaev Graphic Studio" height={34} priority src="/mgs-logo.svg" width={100} />
+              <span className="rounded-md border border-white/10 px-2 py-1 text-[9px] font-semibold tracking-[.12em] text-[#aaa6a0]">ADMIN</span>
+            </Link>
+            <MgsAdminNavigation section={section} />
+            <div className="mt-auto hidden space-y-5 lg:block">
+              <div className="rounded-xl border border-white/[0.07] bg-white/[0.025] p-4">
+                <div className="flex items-center gap-2 text-xs font-medium"><span className={`size-1.5 rounded-full ${storageStatus.connected ? "bg-emerald-400" : "bg-amber-300"}`} />{storageStatus.connected ? "Storage connected" : "Storage unavailable"}</div>
+                <p className="mt-2 text-xs leading-5 text-[#8e8a86]">{storageStatus.connected ? "Your workspace is ready. Saved content appears on the website." : "Connect storage to save changes."}</p>
               </div>
-              <p className="mt-3 px-1 text-xs text-[#a99c90]">Панель управления</p>
-            </div>
-
-            <nav className="grid gap-1" aria-label="Admin navigation">
-              {navigation.map((item) => {
-                const Icon = item.icon;
-                const active = item.key === section;
-                return (
-                  <Link
-                    className={`group flex items-center justify-between rounded-xl px-3 py-2.5 transition ${active ? "bg-white/[0.10] text-[#fff7ee]" : "text-[#b7aa9d] hover:bg-white/[0.05] hover:text-[#fff7ee]"}`}
-                    href={item.href}
-                    key={item.href}
-                  >
-                    <span className="flex items-center gap-3">
-                      <span className="rounded-lg p-1"><Icon className={`size-4 ${active ? "text-[#fff7ee]" : "text-[#a99c90]"}`} /></span>
-                      <span><span className={`block text-sm font-medium ${active ? "text-[#fff7ee]" : "text-[#d2c3b4]"}`}>{item.label}</span></span>
-                    </span>
-                  </Link>
-                );
-              })}
-            </nav>
-
-            <div className="mt-auto space-y-4 border-t border-white/10 px-2 pt-5">
-              <div className="flex flex-wrap gap-2">
-                <StatusPill tone={setupStatus.authConfigured ? "good" : "warn"}>{setupStatus.authConfigured ? "Auth ready" : "Auth setup required"}</StatusPill>
-                <StatusPill tone={storageStatus.connected ? "good" : "warn"}>{storageStatus.connected ? "Storage connected" : "Storage disconnected"}</StatusPill>
-              </div>
-
-              {storageStatus.issue ? (
-                <p className="text-xs leading-5 text-[#b7aa9d]">{storageStatus.issue}</p>
-              ) : (
-                <p className="text-xs leading-5 text-[#b7aa9d]">Projects, enquiries and uploaded media use persistent production storage. VPS media lives inside the `mgs_data` volume.</p>
-              )}
-
-              <div className="flex flex-wrap gap-3">
-                <Link className="inline-flex items-center gap-2 text-xs font-medium text-[#d2c3b4] transition hover:text-white" href="/" target="_blank">
-                  Open website <ArrowTopRightOnSquareIcon className="size-4" />
-                </Link>
-                <MgsAdminLogoutButton />
-              </div>
+              <Link className="admin-nav-link" href="/" target="_blank">Open website <ArrowUpRight className="ml-auto" size={16} aria-hidden="true" /></Link>
+              <div className="flex items-center justify-between border-t border-white/[0.07] px-2 pt-5"><span className="flex items-center gap-2 text-xs text-[#aaa6a0]"><ShieldCheck size={15} aria-hidden="true" /> Owner</span><MgsAdminLogoutButton /></div>
             </div>
           </div>
         </aside>
-
-        <section className="min-w-0 space-y-6 bg-[#050505] pb-10">
-          <header className="border-b border-white/10 bg-[#080808] px-5 py-5 lg:px-8">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <h1 className="text-2xl font-semibold tracking-[-0.04em] text-[#fff7ee] sm:text-[2rem]">{title}</h1>
-                <p className="mt-1 max-w-3xl text-sm leading-6 text-[#b7aa9d]">{description}</p>
-              </div>
-              {actions ? <div className="shrink-0">{actions}</div> : null}
-            </div>
+        <section className="min-w-0 pb-12">
+          <div className="flex min-h-14 items-center justify-between gap-3 border-b border-white/[0.07] px-5 text-xs text-[#8e8a86] lg:px-9">
+            <span>Workspace <span aria-hidden="true" className="mx-2 text-white/20">/</span><span className="capitalize text-[#d6cdc4]">{section === "dashboard" ? "Overview" : section}</span></span>
+            <span className="hidden items-center gap-1.5 sm:flex"><Check size={13} aria-hidden="true" /> Private workspace</span>
+            <div className="lg:hidden"><MgsAdminLogoutButton /></div>
+          </div>
+          <header className="flex flex-col gap-5 px-5 pt-8 pb-7 sm:flex-row sm:items-center sm:justify-between lg:px-9 lg:pt-10">
+            <div><p className="admin-kicker mb-2">Madibaev Graphic Studio</p><h1 className="text-[1.85rem] font-semibold tracking-[-.045em] text-[#fff7ee] sm:text-[2.2rem]">{title}</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-[#aaa6a0]">{description}</p></div>
+            {actions ? <div className="shrink-0">{actions}</div> : null}
           </header>
-
-          <div className="space-y-6 px-5 pt-6 lg:px-8">
-            {!setupStatus.authConfigured ? (
-              <div className="rounded-xl border border-amber-300/25 bg-amber-400/10 p-4 text-sm leading-6 text-amber-100">Missing environment variables: {setupStatus.missingAuthEnv.join(", ")}.</div>
-            ) : null}
+          <div id="admin-content" tabIndex={-1} className="space-y-6 px-5 outline-none lg:px-9">
+            {!setupStatus.authConfigured || !storageStatus.connected ? <div role="status" className="flex gap-3 rounded-xl border border-amber-300/20 bg-amber-300/[0.06] p-4 text-sm leading-6 text-amber-100"><CircleAlert size={18} className="mt-1 shrink-0" aria-hidden="true" /><div>{!setupStatus.authConfigured ? `Sign-in setup required: ${setupStatus.missingAuthEnv.join(", ")}. ` : ""}{!storageStatus.connected ? storageStatus.issue ?? "Storage is unavailable. Saving is disabled until it reconnects." : ""}</div></div> : null}
             {children}
           </div>
         </section>
       </div>
     </main>
-  );
+  </MgsAdminMotion>;
 }
 
 export function MgsAdminPanel({ title, eyebrow, children, description }: { title: string; eyebrow: string; children: ReactNode; description?: string }) {
-  return (
-    <section className="rounded-2xl border border-white/10 bg-white/[0.035] shadow-[0_18px_45px_rgba(0,0,0,0.2)]">
-      <div className="border-b border-white/10 px-5 py-4">
-        <p className="text-[0.68rem] font-medium uppercase tracking-[0.16em] text-[#c6b798]">{eyebrow}</p>
-        <h2 className="mt-1 text-lg font-semibold tracking-[-0.025em] text-[#fff7ee]">{title}</h2>
-        {description ? <p className="mt-1 max-w-3xl text-sm leading-6 text-[#b7aa9d]">{description}</p> : null}
-      </div>
-      <div className="p-5">{children}</div>
-    </section>
-  );
+  return <section className="admin-panel"><div className="admin-panel-head"><p className="admin-kicker">{eyebrow}</p><h2 className="mt-1.5 text-lg font-semibold tracking-tight text-[#fff7ee]">{title}</h2>{description ? <p className="mt-1 max-w-3xl text-sm leading-6 text-[#aaa6a0]">{description}</p> : null}</div><div className="p-4 sm:p-6">{children}</div></section>;
 }
 
 export function MgsAdminStatCard({ label, value, detail }: { label: string; value: string | number; detail: string }) {
-  return (
-    <article className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 shadow-[0_18px_45px_rgba(0,0,0,0.16)]">
-      <p className="text-sm text-[#b7aa9d]">{label}</p>
-      <strong className="mt-3 block text-3xl font-semibold tracking-[-0.06em] text-[#fff7ee]">{value}</strong>
-      <p className="mt-2 text-xs leading-5 text-[#a99c90]">{detail}</p>
-    </article>
-  );
+  return <article className="admin-stat"><p className="pr-4 text-sm text-[#aaa6a0]">{label}</p><strong className="mt-4 block text-4xl font-medium tracking-[-.06em] text-[#fff7ee] tabular-nums">{value}</strong><p className="mt-3 text-xs leading-5 text-[#8e8a86]">{detail}</p></article>;
 }

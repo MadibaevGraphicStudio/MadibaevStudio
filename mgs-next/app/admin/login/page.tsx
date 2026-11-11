@@ -1,4 +1,8 @@
 import { redirect } from "next/navigation";
+import "@/app/admin/admin-ui.css";
+import Image from "next/image";
+import Link from "next/link";
+import { ArrowLeft, ArrowUpRight, FolderOpen, Inbox, LockKeyhole, Images } from "lucide-react";
 
 import { MgsAdminLoginForm } from "@/components/mgs-admin-login-form";
 import { getMgsAdminAccessState } from "@/lib/mgs-admin-auth";
@@ -26,30 +30,48 @@ export default async function AdminLoginPage({
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#050505] px-4 py-10 text-[#f6ecdd]">
-      <div className="w-full max-w-[560px] rounded-[36px] border border-white/10 bg-[radial-gradient(circle_at_top,#171717_0%,#0b0b0b_70%,#050505_100%)] p-8 shadow-[0_28px_90px_rgba(0,0,0,0.4)]">
-        <p className="text-[0.72rem] uppercase tracking-[0.24em] text-[#c6b798]">Madibaev Graphic Studio / Admin</p>
-        <h1 className="mt-4 text-4xl font-semibold tracking-[-0.05em] text-[#fff7ee]">Owner access</h1>
-        <p className="mt-4 text-sm leading-7 text-[#b7aa9d]">
-          Sign in with an approved Google account. Sessions are stored as an HttpOnly cookie and expire after 12 hours.
+    <main className="admin-ui min-h-screen bg-[#080808] text-[#f6ecdd]">
+      <header className="mx-auto flex max-w-[1440px] items-center justify-between gap-4 px-5 py-6 sm:px-10">
+        <Link aria-label="Madibaev Graphic Studio home" href="/"><Image alt="Madibaev Graphic Studio" height={36} priority src="/mgs-logo.svg" width={108} /></Link>
+        <Link className="inline-flex min-h-10 items-center gap-2 rounded-xl px-3 text-xs text-[#b7aa9d] transition hover:bg-white/5 hover:text-white focus-visible:outline-2 focus-visible:outline-[#c6b798]" href="/"><ArrowLeft aria-hidden="true" className="size-4" /> Back to website</Link>
+      </header>
+      <div className="mx-auto grid min-h-[calc(100dvh-100px)] max-w-[1200px] items-center gap-12 px-5 pb-16 pt-8 sm:px-10 lg:grid-cols-[1fr_480px] lg:gap-20">
+      <aside className="hidden lg:block">
+        <p className="mb-6 flex items-center gap-3 text-xs font-medium uppercase tracking-[0.22em] text-[#c6b798]"><span className="h-px w-8 bg-[#c6b798]" /> Studio workspace</p>
+        <h2 className="max-w-lg text-6xl font-medium leading-[1.08] tracking-[-0.065em] text-[#fff7ee]">Behind every<br />great project.</h2>
+        <p className="mt-6 max-w-md text-base leading-7 text-[#a99c90]">A focused space to curate your work, organise media and turn new conversations into projects.</p>
+        <div className="mt-12 grid max-w-md gap-4 border-t border-white/10 pt-7">
+          {[[FolderOpen, "Portfolio", "Keep your best work in the spotlight."], [Images, "Media library", "Your project assets, in one place."], [Inbox, "Enquiries", "Every new brief, ready for your reply."]].map(([Icon, title, detail]) => {
+            const FeatureIcon = Icon as typeof FolderOpen;
+            return <div className="flex items-center gap-4" key={String(title)}><span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03]"><FeatureIcon aria-hidden="true" className="size-4 text-[#c6b798]" /></span><div><p className="text-sm font-medium text-[#efe1cf]">{String(title)}</p><p className="mt-1 text-xs text-[#a99c90]">{String(detail)}</p></div></div>;
+          })}
+        </div>
+      </aside>
+      <section className="mx-auto w-full max-w-[480px] rounded-3xl border border-white/10 bg-[#101010] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.25)] sm:p-9">
+        <span className="mb-7 inline-flex size-12 items-center justify-center rounded-2xl border border-[#c6b798]/20 bg-[#c6b798]/10 text-[#c6b798]"><LockKeyhole aria-hidden="true" className="size-5" /></span>
+        <p className="text-[0.68rem] font-medium uppercase tracking-[0.2em] text-[#c6b798]">Madibaev / Admin</p>
+        <h1 className="mt-3 text-3xl font-semibold tracking-[-0.045em] text-[#fff7ee]">Welcome back.</h1>
+        <p className="mt-3 text-sm leading-6 text-[#b7aa9d]">
+          Sign in to manage your studio’s portfolio, media and enquiries.
         </p>
 
-        <div className="mt-8 rounded-[28px] border border-white/10 bg-white/[0.035] p-5">
+        <div className="mt-7">
           {!access.setup.authConfigured ? (
-            <div className="mb-5 rounded-[24px] border border-amber-300/20 bg-amber-400/10 p-4 text-sm leading-6 text-amber-100">
-              Google sign-in needs these environment variables: {access.setup.missingAuthEnv.join(", ")}.
+            <div className="mb-5 rounded-xl border border-amber-300/20 bg-amber-400/10 p-4 text-sm leading-6 text-amber-100" role="status">
+              Sign-in is not configured yet. Contact the site administrator.
+              <details className="mt-2 text-xs"><summary className="cursor-pointer">Setup details</summary><p className="mt-2 break-words">Missing environment variables: {access.setup.missingAuthEnv.join(", ")}.</p></details>
             </div>
           ) : null}
 
           {errorMessage ? (
-            <div className="mb-5 rounded-[24px] border border-amber-300/20 bg-amber-400/10 p-4 text-sm leading-6 text-amber-100">
+            <div className="mb-5 rounded-xl border border-amber-300/20 bg-amber-400/10 p-4 text-sm leading-6 text-amber-100" role="alert">
               {errorMessage}
             </div>
           ) : null}
 
           {!access.setup.storageConnected ? (
-            <div className="mb-5 rounded-[24px] border border-white/10 bg-black/20 p-4 text-sm leading-6 text-[#b7aa9d]">
-              `BLOB_READ_WRITE_TOKEN` is not connected yet. You can still review the admin UI, but saves and enquiries stay disabled until Blob is added in Vercel.
+            <div className="mb-5 rounded-xl border border-white/10 bg-black/20 p-4 text-sm leading-6 text-[#b7aa9d]">
+              Storage is unavailable. You can sign in, but changes cannot be saved until storage is connected.
             </div>
           ) : null}
 
@@ -90,7 +112,7 @@ export default async function AdminLoginPage({
               {access.setup.googleAuthConfigured ? (
                 <div className="my-5 flex items-center gap-3 text-xs uppercase tracking-[0.18em] text-[#80756c]">
                   <span className="h-px flex-1 bg-white/10" />
-                  Password fallback
+                  or use your password
                   <span className="h-px flex-1 bg-white/10" />
                 </div>
               ) : null}
@@ -98,6 +120,9 @@ export default async function AdminLoginPage({
             </>
           ) : null}
         </div>
+        <p className="mt-7 flex items-start gap-2 border-t border-white/10 pt-5 text-xs leading-5 text-[#a99c90]"><LockKeyhole aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" /> Private workspace. Your session expires after 12 hours.</p>
+        <Link className="mt-5 inline-flex items-center gap-1.5 text-xs text-[#c6b798] hover:text-white" href="/contact">Need help signing in? <ArrowUpRight aria-hidden="true" className="size-3.5" /></Link>
+      </section>
       </div>
     </main>
   );

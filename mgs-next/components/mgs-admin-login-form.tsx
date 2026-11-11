@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ArrowRight, Eye, EyeOff, LoaderCircle, LockKeyhole } from "lucide-react";
+import { Button } from "@animate-ui/react/primitives/buttons/button";
 
 type MgsAdminLoginFormProps = {
   disabled: boolean;
@@ -12,10 +14,12 @@ export function MgsAdminLoginForm({ disabled }: MgsAdminLoginFormProps) {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [visible, setVisible] = useState(false);
 
   return (
     <form
-      className="space-y-4"
+      aria-busy={pending}
+      className="space-y-5"
       onSubmit={async (event) => {
         event.preventDefault();
         if (disabled || pending) return;
@@ -39,33 +43,46 @@ export function MgsAdminLoginForm({ disabled }: MgsAdminLoginFormProps) {
 
           router.replace("/admin");
           router.refresh();
+        } catch {
+          setMessage("Connection failed. Check your connection and try again.");
         } finally {
           setPending(false);
         }
       }}
     >
-      <label className="block">
-        <span className="mb-2 block text-sm font-medium text-[#f6ecdd]">Admin password</span>
+      <div>
+        <label className="mb-2 block text-sm font-medium text-[#f6ecdd]" htmlFor="admin-password">Admin password</label>
+        <div className="relative">
+        <LockKeyhole aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-[#a99c90]" />
         <input
+          aria-describedby={message ? "admin-login-error" : undefined}
+          aria-invalid={Boolean(message)}
           autoComplete="current-password"
-          className="w-full rounded-[24px] border border-white/12 bg-black/25 px-5 py-4 text-base text-[#fff7ee] outline-none transition placeholder:text-[#a99c90] focus:border-white/20 focus:bg-black/35"
+          className="min-h-12 w-full rounded-xl border border-white/12 bg-black/25 py-3 pl-11 pr-14 text-base text-[#fff7ee] outline-none transition placeholder:text-[#a99c90] focus:border-[#c6b798] focus:ring-2 focus:ring-[#c6b798]/15"
           disabled={disabled || pending}
+          id="admin-password"
           onChange={(event) => setPassword(event.target.value)}
           placeholder="Enter the owner password"
-          type="password"
+          required
+          type={visible ? "text" : "password"}
           value={password}
         />
-      </label>
+        <Button aria-label={visible ? "Hide password" : "Show password"} aria-pressed={visible} className="absolute right-1.5 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-lg text-[#b7aa9d] hover:bg-white/5 hover:text-white focus-visible:outline-2 focus-visible:outline-[#c6b798]" disabled={disabled || pending} onClick={() => setVisible((current) => !current)} type="button">
+          {visible ? <EyeOff aria-hidden="true" className="size-4" /> : <Eye aria-hidden="true" className="size-4" />}
+        </Button>
+        </div>
+      </div>
 
-      <button
-        className="inline-flex min-h-12 items-center justify-center rounded-full bg-[linear-gradient(120deg,#159bd3_0%,#e5097f_48%,#ffcf32_100%)] px-6 text-sm font-semibold text-white shadow-[0_18px_40px_rgba(229,9,127,0.24)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
+      <Button
+        className="inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-xl bg-[#f2e7d7] px-6 text-sm font-semibold text-[#171412] transition hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#c6b798] disabled:cursor-not-allowed disabled:opacity-50"
         disabled={disabled || pending || !password.trim()}
         type="submit"
       >
         {pending ? "Signing in..." : "Open admin"}
-      </button>
+        {pending ? <LoaderCircle aria-hidden="true" className="size-4 motion-safe:animate-spin" /> : <ArrowRight aria-hidden="true" className="size-4" />}
+      </Button>
 
-      {message ? <p className="text-sm leading-6 text-amber-100">{message}</p> : null}
+      {message ? <p className="rounded-xl border border-amber-300/20 bg-amber-400/10 p-3 text-sm leading-6 text-amber-100" id="admin-login-error" role="alert">{message}</p> : null}
     </form>
   );
 }

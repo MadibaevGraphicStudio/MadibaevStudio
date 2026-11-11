@@ -9,13 +9,14 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@animate-ui/react": "^2.4.3",
     "@heroicons/react": "^2.2.0",
     "@vercel/blob": "^2.8.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "jose": "6.2.9",
     "lucide-react": "^1.33.0",
-    "motion": "^13.1.0",
+    "motion": "^14.12.0",
     "next": "16.3.1",
     "radix-ui": "^1.6.7",
     "react": "19.2.8",
